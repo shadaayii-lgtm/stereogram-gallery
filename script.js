@@ -22,14 +22,16 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
 function buildFreeGallery() {
   const container = document.getElementById('samplesGallery');
   container.innerHTML = '';
-  sampleImages.forEach((img) => {
+  sampleImages.forEach((img, i) => {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <img src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Free'"/>
+      <img loading="lazy" src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Free'"/>
       <div class="card-label">${img.title}</div>
     `;
-    card.addEventListener('click', () => openLightbox(img.file, img.title));
+    card.onclick = function() {
+      openLightbox(sampleImages, i);
+    };
     container.appendChild(card);
   });
 }
@@ -50,7 +52,9 @@ function buildPaidGallery() {
         <img src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Premium'"/>
         <div class="card-label">${img.title}</div>
       `;
-      card.addEventListener('click', () => openLightbox(img.file, img.title));
+    card.onclick = function() {
+  openLightbox(paidImages, i);
+};
     } else {
       // Show locked/blurred card
       card.className = 'locked-card';
@@ -62,7 +66,9 @@ function buildPaidGallery() {
         </div>
         <div class="card-label">💎 ${img.title}</div>
       `;
-      card.addEventListener('click', () => showPaywall());
+      card.onclick = function() {
+  showPaywall();
+};
     }
 
     container.appendChild(card);
