@@ -99,20 +99,93 @@ if (tabName === 'samples') {
 // =====================
 // LIGHTBOX
 // =====================
-function openLightbox(src, title) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-title').textContent = title;
+function openLightbox(images, startIndex) {
+  const wrapper = document.getElementById('swiperWrapper');
+  wrapper.innerHTML = '';
+  images.forEach((img) => {
+    const slide = document.createElement('div');
+    slide.className = 'swiper-slide';
+    slide.innerHTML = `
+      <img loading="lazy" src="${img.file}" alt="${img.title}"
+        onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
+    `;
+    wrapper.appendChild(slide);
+  });
+
+  document.getElementById('lightbox-title').textContent = images[startIndex].title;
   document.getElementById('lightbox').classList.remove('hidden');
+
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
+  }
+
+  setTimeout(() => {
+    swiperInstance = new Swiper('.lightbox-swiper', {
+      initialSlide: startIndex,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      },
+      on: {
+        slideChange: function() {
+          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+        }
+      }
+    });
+
+    // Force swiper to load the correct slide
+    swiperInstance.slideTo(startIndex, 0);
+    swiperInstance.update();
+  }, 300);
+}function openLightbox(images, startIndex) {
+  const wrapper = document.getElementById('swiperWrapper');
+  wrapper.innerHTML = '';
+  images.forEach((img) => {
+    const slide = document.createElement('div');
+    slide.className = 'swiper-slide';
+    slide.innerHTML = `
+      <img loading="lazy" src="${img.file}" alt="${img.title}"
+        onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
+    `;
+    wrapper.appendChild(slide);
+  });
+
+  document.getElementById('lightbox-title').textContent = images[startIndex].title;
+  document.getElementById('lightbox').classList.remove('hidden');
+
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
+  }
+
+  setTimeout(() => {
+    swiperInstance = new Swiper('.lightbox-swiper', {
+      initialSlide: startIndex,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      },
+      on: {
+        slideChange: function() {
+          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+        }
+      }
+    });
+
+    // Force swiper to load the correct slide
+    swiperInstance.slideTo(startIndex, 0);
+    swiperInstance.update();
+  }, 300);
 }
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
-}
-
-document.getElementById('lightbox').addEventListener('click', function(e) {
-  if (e.target === this) closeLightbox();
-});
-
 // =====================
 // PAYWALL
 // =====================
