@@ -72,11 +72,26 @@ function buildPaidGallery() {
 // =====================
 // TAB SWITCHING
 // =====================
+
 function showTab(tabName, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabName).classList.add('active');
   btn.classList.add('active');
+
+  // If premium tab clicked → open paywall
+  if (tabName === 'paid') {
+    setTimeout(() => showPaywall(), 300);
+    return;
+  }
+
+  // If free tab clicked → scroll to gallery and open first image
+  if (tabName === 'samples') {
+    setTimeout(() => {
+      document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => openLightbox(sampleImages, 0), 600);
+    }, 100);
+  }
 }
 
 // =====================
@@ -99,6 +114,18 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
 // =====================
 // PAYWALL
 // =====================
+
+function tryFreeSample() {
+  const freeBtn = document.querySelector('.tab-btn');
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('samples').classList.add('active');
+  freeBtn.classList.add('active');
+  setTimeout(() => {
+    document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => openLightbox(sampleImages, 0), 600);
+  }, 100);
+}
 function showPaywall() {
   document.getElementById('paywall').classList.remove('hidden');
 }
