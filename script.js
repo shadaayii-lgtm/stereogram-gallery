@@ -22,16 +22,14 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
 function buildFreeGallery() {
   const container = document.getElementById('samplesGallery');
   container.innerHTML = '';
-  sampleImages.forEach((img, i) => {
+  sampleImages.forEach((img) => {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <img loading="lazy" src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Free'"/>
+      <img src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Free'"/>
       <div class="card-label">${img.title}</div>
     `;
-    card.onclick = function() {
-      openLightbox(sampleImages, i);
-    };
+    card.addEventListener('click', () => openLightbox(img.file, img.title));
     container.appendChild(card);
   });
 }
@@ -52,9 +50,7 @@ function buildPaidGallery() {
         <img src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Premium'"/>
         <div class="card-label">${img.title}</div>
       `;
-    card.onclick = function() {
-  openLightbox(paidImages, i);
-};
+      card.addEventListener('click', () => openLightbox(img.file, img.title));
     } else {
       // Show locked/blurred card
       card.className = 'locked-card';
@@ -66,9 +62,7 @@ function buildPaidGallery() {
         </div>
         <div class="card-label">💎 ${img.title}</div>
       `;
-      card.onclick = function() {
-  showPaywall();
-};
+      card.addEventListener('click', () => showPaywall());
     }
 
     container.appendChild(card);
@@ -92,63 +86,31 @@ function showTab(tabName, btn) {
   }
 
   // If free tab clicked → scroll to gallery and open first image
-if (tabName === 'samples') {
+  if (tabName === 'samples') {
     setTimeout(() => {
       document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => openLightbox(sampleImages, 0), 600);
     }, 100);
-    setTimeout(() => {
-      openLightbox(sampleImages, 0);
-    }, 800);
   }
 }
 
 // =====================
 // LIGHTBOX
 // =====================
-function openLightbox(images, startIndex) {
-  const wrapper = document.getElementById('swiperWrapper');
-  wrapper.innerHTML = '';
-  images.forEach((img) => {
-    const slide = document.createElement('div');
-    slide.className = 'swiper-slide';
-    slide.innerHTML = `
-      <img loading="lazy" src="${img.file}" alt="${img.title}"
-        onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
-    `;
-    wrapper.appendChild(slide);
-  });
-
-  document.getElementById('lightbox-title').textContent = images[startIndex].title;
+function openLightbox(src, title) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-title').textContent = title;
   document.getElementById('lightbox').classList.remove('hidden');
-
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true);
-    swiperInstance = null;
-  }
-
-  setTimeout(() => {
-    swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: startIndex,
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
-      on: {
-        slideChange: function() {
-          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
-        }
-      }
-    });
-
-    // Force swiper to load the correct slide
-    swiperInstance.slideTo(startIndex, 0);
-    swiperInstance.update();
-  }, 300);
 }
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+}
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
 // =====================
 // PAYWALL
 // =====================
