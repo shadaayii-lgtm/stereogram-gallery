@@ -86,11 +86,13 @@ function showTab(tabName, btn) {
   }
 
   // If free tab clicked → scroll to gallery and open first image
-  if (tabName === 'samples') {
+if (tabName === 'samples') {
     setTimeout(() => {
       document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
-      setTimeout(() => openLightbox(sampleImages, 0), 600);
     }, 100);
+    setTimeout(() => {
+      openLightbox(sampleImages, 0);
+    }, 800);
   }
 }
 
@@ -123,8 +125,10 @@ function tryFreeSample() {
   freeBtn.classList.add('active');
   setTimeout(() => {
     document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => openLightbox(sampleImages, 0), 600);
   }, 100);
+  setTimeout(() => {
+    openLightbox(sampleImages, 0);
+  }, 800);
 }
 function showPaywall() {
   document.getElementById('paywall').classList.remove('hidden');
