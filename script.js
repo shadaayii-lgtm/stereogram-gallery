@@ -97,36 +97,10 @@ function showTab(tabName, btn) {
 // =====================
 // LIGHTBOX
 // =====================
-ffunction openLightbox(images, startIndex) {
-  const wrapper = document.getElementById('swiperWrapper');
-  wrapper.innerHTML = '';
-  images.forEach((img) => {
-    const slide = document.createElement('div');
-    slide.className = 'swiper-slide';
-    slide.innerHTML = `<img loading="lazy" src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>`;
-    wrapper.appendChild(slide);
-  });
-  document.getElementById('lightbox-title').textContent = images[startIndex].title;
+function openLightbox(src, title) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-title').textContent = title;
   document.getElementById('lightbox').classList.remove('hidden');
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true);
-    swiperInstance = null;
-  }
-  setTimeout(() => {
-    swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: startIndex,
-      pagination: { el: '.swiper-pagination', clickable: true },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
-      on: {
-        slideChange: function() {
-          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
-        }
-      }
-    });
-  }, 200);
 }
 
 function closeLightbox() {
