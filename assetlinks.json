@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.magiceyestudio.stereogram",
+    "sha256_cert_fingerprints": ["25:68:D8:24:2C:5A:55:69:62:ED:67:1E:8B:51:C2:51:5F:A1:9D:A5:28:68:F3:24:A5:F5:7D:18:E7:97:30:FC"]
+  }
+}]
