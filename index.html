@@ -78,14 +78,17 @@
     <div class="gallery" id="paidGallery"></div>
   </div>
 
-  <!-- Lightbox -->
-  <div id="lightbox" class="lightbox hidden">
-    <div class="lightbox-content">
-      <span class="close-btn" onclick="closeLightbox()">✕</span>
-      <img id="lightbox-img" src="" alt="Stereogram" />
-      <p id="lightbox-title"></p>
-    </div>
+ <!-- Lightbox -->
+<div id="lightbox" class="lightbox hidden">
+  <span class="close-btn" onclick="closeLightbox()">✕</span>
+  <div class="swiper lightbox-swiper">
+    <div class="swiper-wrapper" id="swiperWrapper"></div>
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-button-prev"></div>
   </div>
+  <p id="lightbox-title"></p>
+</div>
 
   <!-- Paywall Popup -->
   <div id="paywall" class="paywall hidden">
