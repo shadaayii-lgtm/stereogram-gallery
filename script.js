@@ -77,6 +77,7 @@ function showTab(tabName, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabName).classList.add('active');
   btn.classList.add('active');
+  
   if (tabName === 'paid') {
     setTimeout(() => showPaywall(), 300);
     return;
@@ -85,7 +86,7 @@ function showTab(tabName, btn) {
     setTimeout(() => {
       document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
     }, 100);
-    setTimeout(() => openLightbox(sampleImages, 0), 800);
+    /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
   }
 }
 
@@ -98,10 +99,11 @@ function tryFreeSample() {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('samples').classList.add('active');
   freeBtn.classList.add('active');
+  
   setTimeout(() => {
     document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
   }, 100);
-  setTimeout(() => openLightbox(sampleImages, 0), 800);
+  /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
 }
 
 // =====================
