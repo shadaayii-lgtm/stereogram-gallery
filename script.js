@@ -133,23 +133,29 @@ document.body.classList.add('lightbox-open');
     swiperInstance = null;
   }
 
-  setTimeout(() => {
-  swiperInstance = new Swiper('.lightbox-swiper', {
+swiperInstance = new Swiper('.lightbox-swiper', {
   initialSlide: startIndex,
   direction: 'horizontal',
-  touchMoveStopPropagation: true,
-  preventInteractionOnTransition: true,
-  pagination: { el: '.swiper-pagination', clickable: true },
+  slidesPerView: 1,
+  spaceBetween: 0,
+  zoom: {
+    maxRatio: 3,
+    minRatio: 1,
+  },
+  pagination: { 
+    el: '.swiper-pagination', 
+    clickable: true 
+  },
   navigation: {
     nextEl: '.swiper-button-next',
     prevEl: '.swiper-button-prev'
   },
-      on: {
-        slideChange: function() {
-          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
-        }
-      }
-    });
+  on: {
+    slideChange: function() {
+      document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+    }
+  }
+});
   }, 200);
 }
 
