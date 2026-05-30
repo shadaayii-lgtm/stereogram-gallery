@@ -6,17 +6,11 @@
   <title>Stereogram Gallery</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#a78bfa"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="Stereogram"/>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js');
-    });
-  }
-</script>
+  <meta name="theme-color" content="#a78bfa"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Stereogram"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
 <body>
 
@@ -50,7 +44,7 @@
         <p>Tip: Try in a <strong>quiet, well-lit room</strong> for best results</p>
       </div>
     </div>
-    <button class="try-btn" onclick="showTab('samples', document.querySelector('.tab-btn'))">🎯 Try it on a Free Sample</button>
+    <button class="try-btn" onclick="tryFreeSample()">🎯 Try it on a Free Sample</button>
   </div>
 
   <!-- Navigation Tabs -->
@@ -72,47 +66,73 @@
         <h3>💎 Premium Collection</h3>
         <p>Unlock all 100 exclusive stereograms with one purchase</p>
       </div>
-      <button class="unlock-all-btn" onclick="showPaywall()">🔓 Unlock All — $4.99</button>
+      <button class="unlock-all-btn" onclick="showPaywall()">🔓 Unlock All — ₹499</button>
     </div>
     <h2>Premium Stereograms</h2>
     <div class="gallery" id="paidGallery"></div>
   </div>
 
-<!-- Lightbox -->
-<div id="lightbox" class="lightbox hidden">
-  <span class="close-btn" onclick="closeLightbox()">✕</span>
-  <div class="swiper lightbox-swiper">
-    <div class="swiper-wrapper" id="swiperWrapper"></div>
-    <div class="swiper-pagination"></div>
-    <div class="swiper-button-next"></div>
-    <div class="swiper-button-prev"></div>
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox hidden">
+    <span class="close-btn" onclick="closeLightbox()">✕</span>
+    <div class="swiper lightbox-swiper">
+      <div class="swiper-wrapper" id="swiperWrapper"></div>
+      <div class="swiper-pagination"></div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+    </div>
+    <p id="lightbox-title"></p>
   </div>
-  <p id="lightbox-title"></p>
-</div>
 
   <!-- Paywall Popup -->
   <div id="paywall" class="paywall hidden">
     <div class="paywall-box">
       <span class="close-btn" onclick="closePaywall()">✕</span>
+      <div class="paywall-badge">🔥 Limited Time Offer</div>
       <div class="paywall-icon">💎</div>
       <h2>Unlock Premium Access</h2>
-      <p>Get full access to all <strong>100 exclusive stereograms</strong> in stunning quality!</p>
+      <p>Join <strong>2,400+ happy users</strong> enjoying our exclusive collection!</p>
+      <div class="paywall-previews">
+        <div class="preview-item">🌊</div>
+        <div class="preview-item">🦋</div>
+        <div class="preview-item">🐬</div>
+        <div class="preview-item">🌸</div>
+        <div class="preview-item">+96</div>
+      </div>
       <ul class="paywall-perks">
         <li>✅ 100 Premium Stereograms</li>
         <li>✅ Full HD Quality</li>
-        <li>✅ Lifetime Access</li>
+        <li>✅ Lifetime Access — Pay Once</li>
         <li>✅ New images added monthly</li>
+        <li>✅ Works on all devices</li>
       </ul>
       <div class="paywall-price">
-        <span class="old-price">₹499</span>
+        <span class="old-price">₹999</span>
         <span class="new-price">₹499</span>
         <span class="discount-tag">50% OFF</span>
       </div>
-      <button class="buy-btn" onclick="simulatePurchase()">💳 Buy Now — $4.99</button>
-      <p class="paywall-note">🔒 Secure payment · One-time purchase · No subscription</p>
+      <div class="paywall-timer">
+        ⏰ Offer ends in: <span id="countdown">10:00</span>
+      </div>
+      <button class="buy-btn" onclick="simulatePurchase()">💳 Get Instant Access — ₹499</button>
+      <div class="trust-badges">
+        <span>🔒 Secure Payment</span>
+        <span>⚡ Instant Access</span>
+        <span>↩️ Easy Refund</span>
+      </div>
+      <p class="paywall-note">One-time payment · No subscription · No hidden charges</p>
     </div>
   </div>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
 </body>
 </html>
