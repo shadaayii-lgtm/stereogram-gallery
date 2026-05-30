@@ -119,20 +119,24 @@ function openLightbox(images, startIndex) {
   const wrapper = document.getElementById('swiperWrapper');
   if (!lightboxEl || !wrapper) return;
   
-  // 1. Destroy old instance completely first
+  // 1. Completely destroy previous swiper engine instance if it exists
   if (swiperInstance) {
-    swiperInstance.destroy(true, true);
+    try {
+      swiperInstance.destroy(true, true);
+    } catch(e) {
+      console.log("Swiper cleanup notice");
+    }
     swiperInstance = null;
   }
   
-  // 2. Clear wrapper and inject fresh slides
+  // 2. Empty container slides and load fresh ones
   wrapper.innerHTML = '';
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
     slide.innerHTML = `
       <div class="swiper-zoom-container">
-        <img loading="lazy" src="${img.file}" alt="${img.title}"
+        <img src="${img.file}" alt="${img.title}"
           onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
       </div>
       <div class="slide-actions">
@@ -144,15 +148,14 @@ function openLightbox(images, startIndex) {
     wrapper.appendChild(slide);
   });
 
-  // 3. CRITICAL: Reveal lightbox to the DOM BEFORE running initialization setup
+  // 3. Make lightbox modal instantly visible
   lightboxEl.classList.remove('hidden');
   document.body.classList.add('lightbox-open');
   
-  // Set initial text
   const targetIndex = parseInt(startIndex, 10) || 0;
   document.getElementById('lightbox-title').textContent = images[targetIndex].title;
 
-  // 4. Fire initialization cleanly with an extra safe delay loop macro task wrapper
+  // 4. Fire Swiper Initialization safely with manual SlideTo enforcement
   setTimeout(() => {
     swiperInstance = new Swiper('.lightbox-swiper', {
       initialSlide: targetIndex,
@@ -160,10 +163,7 @@ function openLightbox(images, startIndex) {
       spaceBetween: 0,
       observer: true,
       observeParents: true,
-      zoom: {
-        maxRatio: 3,
-        minRatio: 1,
-      },
+      zoom: true,
       pagination: {
         el: '.swiper-pagination',
         clickable: true
@@ -174,13 +174,20 @@ function openLightbox(images, startIndex) {
       },
       on: {
         slideChange: function() {
-          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+          if (images[this.activeIndex]) {
+            document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+          }
         }
       }
     });
     
-    // Explicit runtime fallback jump enforcement
-    swiperInstance.slideTo(targetIndex, 0, false);
+    // FORCE JUMP ACTION: Overrides initialization engine errors by calling API method directly
+    setTimeout(() => {
+      if (swiperInstance) {
+        swiperInstance.slideTo(targetIndex, 0, false);
+      }
+    }, 50);
+
   }, 100);
 }
 
@@ -189,7 +196,9 @@ function closeLightbox() {
   if (lightboxEl) lightboxEl.classList.add('hidden');
   document.body.classList.remove('lightbox-open');
   if (swiperInstance) {
-    swiperInstance.destroy(true, true);
+    try {
+      swiperInstance.destroy(true, true);
+    } catch(e) {}
     swiperInstance = null;
   }
 }
@@ -226,7 +235,6 @@ function showPaywall() {
   if (paywallEl) paywallEl.classList.remove('hidden');
 }
 
-// Fixed function declaration scope visibility
 function closePaywall() {
   const paywallEl = document.getElementById('paywall');
   if (paywallEl) paywallEl.classList.add('hidden');
