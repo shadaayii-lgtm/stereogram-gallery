@@ -3,8 +3,6 @@
 // =====================
 let isPremiumUnlocked = false;
 let swiperInstance = null;
-let currentActiveLightboxIndex = 0;
-let currentLightboxImagesArray = [];
 
 // =====================
 // IMAGE DATA
@@ -24,7 +22,6 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
 // =====================
 function buildFreeGallery() {
   const container = document.getElementById('samplesGallery');
-  if (!container) return;
   container.innerHTML = '';
   sampleImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -44,7 +41,6 @@ function buildFreeGallery() {
 // =====================
 function buildPaidGallery() {
   const container = document.getElementById('paidGallery');
-  if (!container) return;
   container.innerHTML = '';
   paidImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -79,10 +75,8 @@ function buildPaidGallery() {
 function showTab(tabName, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  
-  const activeTab = document.getElementById(tabName);
-  if (activeTab) activeTab.classList.add('active');
-  if (btn) btn.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+  btn.classList.add('active');
   
   if (tabName === 'paid') {
     setTimeout(() => showPaywall(), 300);
@@ -90,9 +84,9 @@ function showTab(tabName, btn) {
   }
   if (tabName === 'samples') {
     setTimeout(() => {
-      const sampleEl = document.getElementById('samples');
-      if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
     }, 100);
+    /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
   }
 }
 
@@ -103,44 +97,29 @@ function tryFreeSample() {
   const freeBtn = document.querySelector('.tab-btn');
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  
-  const sampleEl = document.getElementById('samples');
-  if (sampleEl) sampleEl.classList.add('active');
-  if (freeBtn) freeBtn.classList.add('active');
+  document.getElementById('samples').classList.add('active');
+  freeBtn.classList.add('active');
   
   setTimeout(() => {
-    if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
   }, 100);
+  /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
 }
 
 // =====================
 // LIGHTBOX WITH SWIPER
 // =====================
 function openLightbox(images, startIndex) {
-  const lightboxEl = document.getElementById('lightbox');
   const wrapper = document.getElementById('swiperWrapper');
-  if (!lightboxEl || !wrapper) return;
-  
-  // Save reference datasets globally
-  currentLightboxImagesArray = images;
-  currentActiveLightboxIndex = parseInt(startIndex, 10) || 0;
-  
-  if (swiperInstance) {
-    try {
-      swiperInstance.destroy(true, true);
-    } catch(e) {}
-    swiperInstance = null;
-  }
-  
+  if (!wrapper) return;
   wrapper.innerHTML = '';
-  
-  // Re-populate dynamic presentation nodes
+
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
     slide.innerHTML = `
       <div class="swiper-zoom-container">
-        <img src="${img.file}" alt="${img.title}"
+        <img loading="lazy" src="${img.file}" alt="${img.title}"
           onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
       </div>
       <div class="slide-actions">
@@ -152,20 +131,24 @@ function openLightbox(images, startIndex) {
     wrapper.appendChild(slide);
   });
 
-  // Display container elements cleanly
-  lightboxEl.classList.remove('hidden');
+  document.getElementById('lightbox-title').textContent = images[startIndex].title;
+  document.getElementById('lightbox').classList.remove('hidden');
   document.body.classList.add('lightbox-open');
-  
-  document.getElementById('lightbox-title').textContent = images[currentActiveLightboxIndex].title;
+
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
+  }
 
   setTimeout(() => {
     swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: currentActiveLightboxIndex,
+      initialSlide: startIndex,
       slidesPerView: 1,
       spaceBetween: 0,
-      observer: true,
-      observeParents: true,
-      zoom: true,
+      zoom: {
+        maxRatio: 3,
+        minRatio: 1,
+      },
       pagination: {
         el: '.swiper-pagination',
         clickable: true
@@ -175,35 +158,19 @@ function openLightbox(images, startIndex) {
         prevEl: '.swiper-button-prev'
       },
       on: {
-        init: function() {
-          // Double down via API execution context to make sure the slide shifts instantly
-          this.slideTo(currentActiveLightboxIndex, 0, false);
-        },
         slideChange: function() {
-          currentActiveLightboxIndex = this.activeIndex;
-          const currentImg = currentLightboxImagesArray[currentActiveLightboxIndex];
-          if (currentImg) {
-            document.getElementById('lightbox-title').textContent = currentImg.title;
-          }
+          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
         }
       }
     });
-
-    // Final fallback shift insurance to bypass async render locks
-    if (swiperInstance && swiperInstance.activeIndex !== currentActiveLightboxIndex) {
-      swiperInstance.slideTo(currentActiveLightboxIndex, 0, false);
-    }
-  }, 80);
+  }, 200);
 }
 
 function closeLightbox() {
-  const lightboxEl = document.getElementById('lightbox');
-  if (lightboxEl) lightboxEl.classList.add('hidden');
+  document.getElementById('lightbox').classList.add('hidden');
   document.body.classList.remove('lightbox-open');
   if (swiperInstance) {
-    try {
-      swiperInstance.destroy(true, true);
-    } catch(e) {}
+    swiperInstance.destroy(true, true);
     swiperInstance = null;
   }
 }
@@ -236,13 +203,11 @@ async function shareImage(src, title) {
 // PAYWALL
 // =====================
 function showPaywall() {
-  const paywallEl = document.getElementById('paywall');
-  if (paywallEl) paywallEl.classList.remove('hidden');
+  document.getElementById('paywall').classList.remove('hidden');
 }
 
 function closePaywall() {
-  const paywallEl = document.getElementById('paywall');
-  if (paywallEl) paywallEl.classList.add('hidden');
+  document.getElementById('paywall').classList.add('hidden');
 }
 
 document.getElementById('paywall').addEventListener('click', function(e) {
