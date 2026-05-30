@@ -110,17 +110,17 @@ function openLightbox(images, startIndex) {
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
-    slide.innerHTML = `
-      <div class="slide-container">
-        <img loading="lazy" src="${img.file}" alt="${img.title}"
-          onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
-        <div class="slide-actions">
-          <button class="share-btn" onclick="shareImage('${img.file}', '${img.title}')">
-            📤 Share
-          </button>
-        </div>
-      </div>
-    `;
+   slide.innerHTML = `
+  <div class="swiper-zoom-container">
+    <img loading="lazy" src="${img.file}" alt="${img.title}"
+      onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
+  </div>
+  <div class="slide-actions">
+    <button class="share-btn" onclick="shareImage('${img.file}', '${img.title}')">
+      📤 Share
+    </button>
+  </div>
+`;
     wrapper.appendChild(slide);
   });
 
