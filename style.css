@@ -386,6 +386,38 @@ header p {
   text-align: center;
   line-height: 1;
 }
+
+/* Fix lightbox scrolling */
+body.lightbox-open {
+  overflow: hidden !important;
+}
+
+.lightbox {
+  overflow: hidden !important;
+  touch-action: pan-x !important;
+}
+
+.lightbox-swiper {
+  touch-action: pan-x !important;
+}
+
+.swiper-slide {
+  touch-action: pan-x !important;
+}
+
+.slide-container {
+  touch-action: pan-x !important;
+  overflow: hidden !important;
+}
+
+.slide-container img {
+  touch-action: pan-x !important;
+  max-width: 100% !important;
+  max-height: 75vh !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
 /* Paywall */
 .paywall {
   position: fixed;
