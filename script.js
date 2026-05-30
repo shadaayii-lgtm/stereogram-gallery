@@ -17,11 +17,43 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
   title: `Premium Stereogram ${i + 1}`
 }));
 
+// Keeping track of what gallery dataset is currently viewed inside lightbox
+let currentImagesContext = [];
+
+// =====================
+// INIT SWIPER ONCE ON LOAD
+// =====================
+function initSwiperStatic() {
+  swiperInstance = new Swiper('.lightbox-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 0,
+    observer: true,
+    observeParents: true,
+    zoom: true,
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    },
+    on: {
+      slideChange: function() {
+        if (currentImagesContext && currentImagesContext[this.activeIndex]) {
+          document.getElementById('lightbox-title').textContent = currentImagesContext[this.activeIndex].title;
+        }
+      }
+    }
+  });
+}
+
 // =====================
 // BUILD FREE GALLERY
 // =====================
 function buildFreeGallery() {
   const container = document.getElementById('samplesGallery');
+  if (!container) return;
   container.innerHTML = '';
   sampleImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -41,6 +73,7 @@ function buildFreeGallery() {
 // =====================
 function buildPaidGallery() {
   const container = document.getElementById('paidGallery');
+  if (!container) return;
   container.innerHTML = '';
   paidImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -75,8 +108,10 @@ function buildPaidGallery() {
 function showTab(tabName, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabName).classList.add('active');
-  btn.classList.add('active');
+  
+  const activeTab = document.getElementById(tabName);
+  if (activeTab) activeTab.classList.add('active');
+  if (btn) btn.classList.add('active');
   
   if (tabName === 'paid') {
     setTimeout(() => showPaywall(), 300);
@@ -84,9 +119,9 @@ function showTab(tabName, btn) {
   }
   if (tabName === 'samples') {
     setTimeout(() => {
-      document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+      const sampleEl = document.getElementById('samples');
+      if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-    /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
   }
 }
 
@@ -97,29 +132,35 @@ function tryFreeSample() {
   const freeBtn = document.querySelector('.tab-btn');
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('samples').classList.add('active');
-  freeBtn.classList.add('active');
+  
+  const sampleEl = document.getElementById('samples');
+  if (sampleEl) sampleEl.classList.add('active');
+  if (freeBtn) freeBtn.classList.add('active');
   
   setTimeout(() => {
-    document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+    if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
   }, 100);
-  /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
 }
 
 // =====================
-// LIGHTBOX WITH SWIPER
+// LIGHTBOX ENGINE FIX
 // =====================
 function openLightbox(images, startIndex) {
+  const lightboxEl = document.getElementById('lightbox');
   const wrapper = document.getElementById('swiperWrapper');
-  if (!wrapper) return;
-  wrapper.innerHTML = '';
+  if (!lightboxEl || !wrapper) return;
+  
+  currentImagesContext = images;
+  const targetIndex = parseInt(startIndex, 10) || 0;
 
+  // 1. Clear old slides and quickly inject all slides for this category context
+  wrapper.innerHTML = '';
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
     slide.innerHTML = `
       <div class="swiper-zoom-container">
-        <img loading="lazy" src="${img.file}" alt="${img.title}"
+        <img src="${img.file}" alt="${img.title}"
           onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
       </div>
       <div class="slide-actions">
@@ -131,48 +172,26 @@ function openLightbox(images, startIndex) {
     wrapper.appendChild(slide);
   });
 
-  document.getElementById('lightbox-title').textContent = images[startIndex].title;
-  document.getElementById('lightbox').classList.remove('hidden');
+  // 2. Make the lightbox modal visible
+  lightboxEl.classList.remove('hidden');
   document.body.classList.add('lightbox-open');
+  
+  // Update header text immediately
+  document.getElementById('lightbox-title').textContent = images[targetIndex].title;
 
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true);
-    swiperInstance = null;
-  }
-
+  // 3. Force Swiper to update its internal DOM tree arrays and snap to the index cleanly
   setTimeout(() => {
-    swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: startIndex,
-      slidesPerView: 1,
-      spaceBetween: 0,
-      zoom: {
-        maxRatio: 3,
-        minRatio: 1,
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
-      on: {
-        slideChange: function() {
-          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
-        }
-      }
-    });
-  }, 200);
+    if (swiperInstance) {
+      swiperInstance.update(); // Tells swiper to read the newly inserted slides
+      swiperInstance.slideTo(targetIndex, 0, false); // Instantly jumps directly to your image
+    }
+  }, 50);
 }
 
 function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
+  const lightboxEl = document.getElementById('lightbox');
+  if (lightboxEl) lightboxEl.classList.add('hidden');
   document.body.classList.remove('lightbox-open');
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true);
-    swiperInstance = null;
-  }
 }
 
 document.getElementById('lightbox').addEventListener('click', function(e) {
@@ -203,11 +222,13 @@ async function shareImage(src, title) {
 // PAYWALL
 // =====================
 function showPaywall() {
-  document.getElementById('paywall').classList.remove('hidden');
+  const paywallEl = document.getElementById('paywall');
+  if (paywallEl) paywallEl.classList.remove('hidden');
 }
 
 function closePaywall() {
-  document.getElementById('paywall').classList.add('hidden');
+  const paywallEl = document.getElementById('paywall');
+  if (paywallEl) paywallEl.classList.add('hidden');
 }
 
 document.getElementById('paywall').addEventListener('click', function(e) {
@@ -260,3 +281,4 @@ startCountdown();
 // =====================
 buildFreeGallery();
 buildPaidGallery();
+initSwiperStatic(); // Keep Swiper built globally once from the beginning
