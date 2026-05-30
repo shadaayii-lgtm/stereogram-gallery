@@ -22,6 +22,7 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
 // =====================
 function buildFreeGallery() {
   const container = document.getElementById('samplesGallery');
+  if (!container) return;
   container.innerHTML = '';
   sampleImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -41,6 +42,7 @@ function buildFreeGallery() {
 // =====================
 function buildPaidGallery() {
   const container = document.getElementById('paidGallery');
+  if (!container) return;
   container.innerHTML = '';
   paidImages.forEach((img, i) => {
     const card = document.createElement('div');
@@ -75,8 +77,10 @@ function buildPaidGallery() {
 function showTab(tabName, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabName).classList.add('active');
-  btn.classList.add('active');
+  
+  const activeTab = document.getElementById(tabName);
+  if (activeTab) activeTab.classList.add('active');
+  if (btn) btn.classList.add('active');
   
   if (tabName === 'paid') {
     setTimeout(() => showPaywall(), 300);
@@ -84,7 +88,8 @@ function showTab(tabName, btn) {
   }
   if (tabName === 'samples') {
     setTimeout(() => {
-      document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+      const sampleEl = document.getElementById('samples');
+      if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   }
 }
@@ -96,11 +101,13 @@ function tryFreeSample() {
   const freeBtn = document.querySelector('.tab-btn');
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('samples').classList.add('active');
-  freeBtn.classList.add('active');
+  
+  const sampleEl = document.getElementById('samples');
+  if (sampleEl) sampleEl.classList.add('active');
+  if (freeBtn) freeBtn.classList.add('active');
   
   setTimeout(() => {
-    document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
+    if (sampleEl) sampleEl.scrollIntoView({ behavior: 'smooth' });
   }, 100);
 }
 
@@ -108,18 +115,18 @@ function tryFreeSample() {
 // LIGHTBOX WITH SWIPER
 // =====================
 function openLightbox(images, startIndex) {
+  const lightboxEl = document.getElementById('lightbox');
   const wrapper = document.getElementById('swiperWrapper');
-  if (!wrapper) return;
+  if (!lightboxEl || !wrapper) return;
   
-  // Clean up any old swiper instance completely before altering the DOM
+  // 1. Destroy old instance completely first
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
     swiperInstance = null;
   }
   
+  // 2. Clear wrapper and inject fresh slides
   wrapper.innerHTML = '';
-
-  // Inject fresh dynamic slides
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
@@ -137,18 +144,22 @@ function openLightbox(images, startIndex) {
     wrapper.appendChild(slide);
   });
 
-  document.getElementById('lightbox-title').textContent = images[startIndex].title;
-  document.getElementById('lightbox').classList.remove('hidden');
+  // 3. CRITICAL: Reveal lightbox to the DOM BEFORE running initialization setup
+  lightboxEl.classList.remove('hidden');
   document.body.classList.add('lightbox-open');
+  
+  // Set initial text
+  const targetIndex = parseInt(startIndex, 10) || 0;
+  document.getElementById('lightbox-title').textContent = images[targetIndex].title;
 
-  // FIXED: Execute after layout recycles and updates to cleanly navigate directly to startIndex
+  // 4. Fire initialization cleanly with an extra safe delay loop macro task wrapper
   setTimeout(() => {
     swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: parseInt(startIndex, 10),
+      initialSlide: targetIndex,
       slidesPerView: 1,
       spaceBetween: 0,
-      observer: true,            // Forces swiper to look for DOM alterations
-      observeParents: true,      // Forces swiper to recalculate dimensions
+      observer: true,
+      observeParents: true,
       zoom: {
         maxRatio: 3,
         minRatio: 1,
@@ -162,20 +173,20 @@ function openLightbox(images, startIndex) {
         prevEl: '.swiper-button-prev'
       },
       on: {
-        init: function () {
-          // Double-check jump reinforcement right at lifecycle mounting initialization
-          this.slideTo(parseInt(startIndex, 10), 0, false);
-        },
         slideChange: function() {
           document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
         }
       }
     });
-  }, 50);
+    
+    // Explicit runtime fallback jump enforcement
+    swiperInstance.slideTo(targetIndex, 0, false);
+  }, 100);
 }
 
 function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
+  const lightboxEl = document.getElementById('lightbox');
+  if (lightboxEl) lightboxEl.classList.add('hidden');
   document.body.classList.remove('lightbox-open');
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
@@ -211,11 +222,14 @@ async function shareImage(src, title) {
 // PAYWALL
 // =====================
 function showPaywall() {
-  document.getElementById('paywall').classList.remove('hidden');
+  const paywallEl = document.getElementById('paywall');
+  if (paywallEl) paywallEl.classList.remove('hidden');
 }
 
+// Fixed function declaration scope visibility
 function closePaywall() {
-  document.getElementById('paywall').classList.add('hidden');
+  const paywallEl = document.getElementById('paywall');
+  if (paywallEl) paywallEl.classList.add('hidden');
 }
 
 document.getElementById('paywall').addEventListener('click', function(e) {
