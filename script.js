@@ -17,37 +17,6 @@ const paidImages = Array.from({length: 100}, (_, i) => ({
   title: `Premium Stereogram ${i + 1}`
 }));
 
-// Keeping track of what gallery dataset is currently viewed inside lightbox
-let currentImagesContext = [];
-
-// =====================
-// INIT SWIPER ONCE ON LOAD
-// =====================
-function initSwiperStatic() {
-  swiperInstance = new Swiper('.lightbox-swiper', {
-    slidesPerView: 1,
-    spaceBetween: 0,
-    observer: true,
-    observeParents: true,
-    zoom: true,
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    },
-    on: {
-      slideChange: function() {
-        if (currentImagesContext && currentImagesContext[this.activeIndex]) {
-          document.getElementById('lightbox-title').textContent = currentImagesContext[this.activeIndex].title;
-        }
-      }
-    }
-  });
-}
-
 // =====================
 // BUILD FREE GALLERY
 // =====================
@@ -143,19 +112,33 @@ function tryFreeSample() {
 }
 
 // =====================
-// LIGHTBOX ENGINE FIX
+// LIGHTBOX WITH SWIPER
 // =====================
 function openLightbox(images, startIndex) {
   const lightboxEl = document.getElementById('lightbox');
   const wrapper = document.getElementById('swiperWrapper');
   if (!lightboxEl || !wrapper) return;
   
-  currentImagesContext = images;
   const targetIndex = parseInt(startIndex, 10) || 0;
 
-  // 1. Clear old slides and quickly inject all slides for this category context
+  if (swiperInstance) {
+    try {
+      swiperInstance.destroy(true, true);
+    } catch(e) {}
+    swiperInstance = null;
+  }
+  
   wrapper.innerHTML = '';
-  images.forEach((img) => {
+
+  // RE-ARRANGE ARRAY SOLUTION:
+  // We slice and shift the chosen index to position [0] dynamically inside the lightbox template loop.
+  // This ensures that even if Swiper acts broken and opens slide 0, slide 0 is exactly the image you clicked!
+  const reorderedImages = [
+    ...images.slice(targetIndex),
+    ...images.slice(0, targetIndex)
+  ];
+
+  reorderedImages.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
     slide.innerHTML = `
@@ -172,19 +155,36 @@ function openLightbox(images, startIndex) {
     wrapper.appendChild(slide);
   });
 
-  // 2. Make the lightbox modal visible
   lightboxEl.classList.remove('hidden');
   document.body.classList.add('lightbox-open');
   
-  // Update header text immediately
-  document.getElementById('lightbox-title').textContent = images[targetIndex].title;
+  // Title matches our selection instantly
+  document.getElementById('lightbox-title').textContent = reorderedImages[0].title;
 
-  // 3. Force Swiper to update its internal DOM tree arrays and snap to the index cleanly
   setTimeout(() => {
-    if (swiperInstance) {
-      swiperInstance.update(); // Tells swiper to read the newly inserted slides
-      swiperInstance.slideTo(targetIndex, 0, false); // Instantly jumps directly to your image
-    }
+    swiperInstance = new Swiper('.lightbox-swiper', {
+      initialSlide: 0, // Swiper naturally opens slide index 0
+      slidesPerView: 1,
+      spaceBetween: 0,
+      observer: true,
+      observeParents: true,
+      zoom: true,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      },
+      on: {
+        slideChange: function() {
+          if (reorderedImages[this.activeIndex]) {
+            document.getElementById('lightbox-title').textContent = reorderedImages[this.activeIndex].title;
+          }
+        }
+      }
+    });
   }, 50);
 }
 
@@ -192,6 +192,12 @@ function closeLightbox() {
   const lightboxEl = document.getElementById('lightbox');
   if (lightboxEl) lightboxEl.classList.add('hidden');
   document.body.classList.remove('lightbox-open');
+  if (swiperInstance) {
+    try {
+      swiperInstance.destroy(true, true);
+    } catch(e) {}
+    swiperInstance = null;
+  }
 }
 
 document.getElementById('lightbox').addEventListener('click', function(e) {
@@ -207,78 +213,4 @@ async function shareImage(src, title) {
       await navigator.share({
         title: 'Stereogram Gallery',
         text: `Check out this amazing hidden 3D image! - ${title}`,
-        url: 'https://stereogram-gallery.vercel.app'
-      });
-    } else {
-      navigator.clipboard.writeText('https://stereogram-gallery.vercel.app');
-      alert('Link copied! Share it with friends 🎯');
-    }
-  } catch (err) {
-    console.log('Share cancelled');
-  }
-}
-
-// =====================
-// PAYWALL
-// =====================
-function showPaywall() {
-  const paywallEl = document.getElementById('paywall');
-  if (paywallEl) paywallEl.classList.remove('hidden');
-}
-
-function closePaywall() {
-  const paywallEl = document.getElementById('paywall');
-  if (paywallEl) paywallEl.classList.add('hidden');
-}
-
-document.getElementById('paywall').addEventListener('click', function(e) {
-  if (e.target === this) closePaywall();
-});
-
-// =====================
-// RAZORPAY PAYMENT
-// =====================
-function simulatePurchase() {
-  var options = {
-    key: "rzp_live_Srex5oMP9i7MlE",
-    amount: 49900,
-    currency: "INR",
-    name: "Stereogram Gallery",
-    description: "Premium Access - 100 Stereograms",
-    handler: function(response) {
-      isPremiumUnlocked = true;
-      closePaywall();
-      buildPaidGallery();
-      alert('🎉 Payment successful! All 100 stereograms unlocked!');
-    },
-    theme: { color: "#a78bfa" }
-  };
-  var rzp = new Razorpay(options);
-  rzp.open();
-}
-
-// =====================
-// COUNTDOWN TIMER
-// =====================
-function startCountdown() {
-  let minutes = 9;
-  let seconds = 59;
-  const timer = setInterval(() => {
-    const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const el = document.getElementById('countdown');
-    if (el) el.textContent = display;
-    if (seconds === 0) {
-      if (minutes === 0) { minutes = 9; seconds = 59; }
-      else { minutes--; seconds = 59; }
-    } else { seconds--; }
-  }, 1000);
-}
-
-startCountdown();
-
-// =====================
-// INIT
-// =====================
-buildFreeGallery();
-buildPaidGallery();
-initSwiperStatic(); // Keep Swiper built globally once from the beginning
+        url: '
