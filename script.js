@@ -126,6 +126,7 @@ function openLightbox(images, startIndex) {
 
   document.getElementById('lightbox-title').textContent = images[startIndex].title;
   document.getElementById('lightbox').classList.remove('hidden');
+document.body.classList.add('lightbox-open');
 
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
@@ -133,13 +134,16 @@ function openLightbox(images, startIndex) {
   }
 
   setTimeout(() => {
-    swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: startIndex,
-      pagination: { el: '.swiper-pagination', clickable: true },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev'
-      },
+  swiperInstance = new Swiper('.lightbox-swiper', {
+  initialSlide: startIndex,
+  direction: 'horizontal',
+  touchMoveStopPropagation: true,
+  preventInteractionOnTransition: true,
+  pagination: { el: '.swiper-pagination', clickable: true },
+  navigation: {
+    nextEl: '.swiper-button-next',
+    prevEl: '.swiper-button-prev'
+  },
       on: {
         slideChange: function() {
           document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
@@ -151,6 +155,7 @@ function openLightbox(images, startIndex) {
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.add('hidden');
+  document.body.classList.remove('lightbox-open');
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
     swiperInstance = null;
