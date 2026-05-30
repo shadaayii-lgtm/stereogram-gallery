@@ -6,10 +6,7 @@ let isPremiumUnlocked = false;
 // =====================
 // IMAGE DATA
 // =====================
-const sampleImages = Array.from({length: 20}, (_, i) => ({
-  file: `sample${i + 1}.jpg`,
-  title: `Sample Stereogram ${i + 1}`
-}));
+
 
 const paidImages = Array.from({length: 100}, (_, i) => ({
   file: `paid${i + 1}.jpg`,
@@ -97,19 +94,50 @@ function showTab(tabName, btn) {
 // =====================
 // LIGHTBOX
 // =====================
-function openLightbox(src, title) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-title').textContent = title;
+function openLightbox(images, startIndex) {
+  const wrapper = document.getElementById('swiperWrapper');
+  wrapper.innerHTML = '';
+  images.forEach((img) => {
+    const slide = document.createElement('div');
+    slide.className = 'swiper-slide';
+    slide.innerHTML = `
+      <div class="slide-container">
+        <img loading="lazy" src="${img.file}" alt="${img.title}"
+          onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
+        <div class="slide-actions">
+          <button class="share-btn" onclick="shareImage('${img.file}', '${img.title}')">
+            📤 Share
+          </button>
+        </div>
+      </div>
+    `;
+    wrapper.appendChild(slide);
+  });
+
+  document.getElementById('lightbox-title').textContent = images[startIndex].title;
   document.getElementById('lightbox').classList.remove('hidden');
-}
 
-function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
-}
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
+  }
 
-document.getElementById('lightbox').addEventListener('click', function(e) {
-  if (e.target === this) closeLightbox();
-});
+  setTimeout(() => {
+    swiperInstance = new Swiper('.lightbox-swiper', {
+      initialSlide: startIndex,
+      pagination: { el: '.swiper-pagination', clickable: true },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      },
+      on: {
+        slideChange: function() {
+          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+        }
+      }
+    });
+  }, 200);
+}
 
 // =====================
 // PAYWALL
@@ -123,8 +151,10 @@ function tryFreeSample() {
   freeBtn.classList.add('active');
   setTimeout(() => {
     document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => openLightbox(sampleImages, 0), 600);
   }, 100);
+  setTimeout(() => {
+    openLightbox(sampleImages, 0);
+  }, 800);
 }
 function showPaywall() {
   document.getElementById('paywall').classList.remove('hidden');
