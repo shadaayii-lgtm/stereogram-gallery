@@ -27,10 +27,11 @@ function buildFreeGallery() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <img loading="lazy" src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Free'"/>
+      <img loading="lazy" src="${img.file}" alt="${img.title}" 
+        onerror="this.src='https://placehold.co/200x160?text=Free'"/>
       <div class="card-label">${img.title}</div>
     `;
-    card.onclick = function() { openLightbox(sampleImages, i); };
+    card.addEventListener('click', () => openLightbox(sampleImages, i));
     container.appendChild(card);
   });
 }
@@ -46,21 +47,23 @@ function buildPaidGallery() {
     if (isPremiumUnlocked) {
       card.className = 'card';
       card.innerHTML = `
-        <img loading="lazy" src="${img.file}" alt="${img.title}" onerror="this.src='https://placehold.co/200x160?text=Premium'"/>
+        <img loading="lazy" src="${img.file}" alt="${img.title}" 
+          onerror="this.src='https://placehold.co/200x160?text=Premium'"/>
         <div class="card-label">${img.title}</div>
       `;
-      card.onclick = function() { openLightbox(paidImages, i); };
+      card.addEventListener('click', () => openLightbox(paidImages, i));
     } else {
       card.className = 'locked-card';
       card.innerHTML = `
-        <img loading="lazy" src="${img.file}" alt="Locked" onerror="this.src='https://placehold.co/200x160?text=🔒'"/>
+        <img loading="lazy" src="${img.file}" alt="Locked" 
+          onerror="this.src='https://placehold.co/200x160?text=🔒'"/>
         <div class="lock-overlay">
           <span class="lock-icon">🔒</span>
           <span class="lock-text">Premium Only</span>
         </div>
         <div class="card-label">💎 ${img.title}</div>
       `;
-      card.onclick = function() { showPaywall(); };
+      card.addEventListener('click', () => showPaywall());
     }
     container.appendChild(card);
   });
@@ -74,6 +77,7 @@ function showTab(tabName, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabName).classList.add('active');
   btn.classList.add('active');
+  
   if (tabName === 'paid') {
     setTimeout(() => showPaywall(), 300);
     return;
@@ -82,7 +86,7 @@ function showTab(tabName, btn) {
     setTimeout(() => {
       document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
     }, 100);
-    setTimeout(() => openLightbox(sampleImages, 0), 800);
+    /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
   }
 }
 
@@ -95,10 +99,11 @@ function tryFreeSample() {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('samples').classList.add('active');
   freeBtn.classList.add('active');
+  
   setTimeout(() => {
     document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
   }, 100);
-  setTimeout(() => openLightbox(sampleImages, 0), 800);
+  /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
 }
 
 // =====================
@@ -106,56 +111,58 @@ function tryFreeSample() {
 // =====================
 function openLightbox(images, startIndex) {
   const wrapper = document.getElementById('swiperWrapper');
+  if (!wrapper) return;
   wrapper.innerHTML = '';
+
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
-   slide.innerHTML = `
-  <div class="swiper-zoom-container">
-    <img loading="lazy" src="${img.file}" alt="${img.title}"
-      onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
-  </div>
-  <div class="slide-actions">
-    <button class="share-btn" onclick="shareImage('${img.file}', '${img.title}')">
-      📤 Share
-    </button>
-  </div>
-`;
+    slide.innerHTML = `
+      <div class="swiper-zoom-container">
+        <img loading="lazy" src="${img.file}" alt="${img.title}"
+          onerror="this.src='https://placehold.co/400x300?text=Stereogram'"/>
+      </div>
+      <div class="slide-actions">
+        <button class="share-btn" onclick="shareImage('${img.file}', '${img.title}')">
+          📤 Share
+        </button>
+      </div>
+    `;
     wrapper.appendChild(slide);
   });
 
   document.getElementById('lightbox-title').textContent = images[startIndex].title;
   document.getElementById('lightbox').classList.remove('hidden');
-document.body.classList.add('lightbox-open');
+  document.body.classList.add('lightbox-open');
 
   if (swiperInstance) {
     swiperInstance.destroy(true, true);
     swiperInstance = null;
   }
 
-swiperInstance = new Swiper('.lightbox-swiper', {
-  initialSlide: startIndex,
-  direction: 'horizontal',
-  slidesPerView: 1,
-  spaceBetween: 0,
-  zoom: {
-    maxRatio: 3,
-    minRatio: 1,
-  },
-  pagination: { 
-    el: '.swiper-pagination', 
-    clickable: true 
-  },
-  navigation: {
-    nextEl: '.swiper-button-next',
-    prevEl: '.swiper-button-prev'
-  },
-  on: {
-    slideChange: function() {
-      document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
-    }
-  }
-});
+  setTimeout(() => {
+    swiperInstance = new Swiper('.lightbox-swiper', {
+      initialSlide: startIndex,
+      slidesPerView: 1,
+      spaceBetween: 0,
+      zoom: {
+        maxRatio: 3,
+        minRatio: 1,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev'
+      },
+      on: {
+        slideChange: function() {
+          document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
+        }
+      }
+    });
   }, 200);
 }
 
@@ -212,7 +219,7 @@ document.getElementById('paywall').addEventListener('click', function(e) {
 // =====================
 function simulatePurchase() {
   var options = {
-     key: "rzp_live_Srex5oMP9i7MlE",
+    key: "rzp_live_Srex5oMP9i7MlE",
     amount: 49900,
     currency: "INR",
     name: "Stereogram Gallery",
