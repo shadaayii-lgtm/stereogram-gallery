@@ -86,7 +86,6 @@ function showTab(tabName, btn) {
     setTimeout(() => {
       document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
     }, 100);
-    /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
   }
 }
 
@@ -103,7 +102,6 @@ function tryFreeSample() {
   setTimeout(() => {
     document.getElementById('samples').scrollIntoView({ behavior: 'smooth' });
   }, 100);
-  /* FIXED: Removed the automated openLightbox(sampleImages, 0) popup rule from here */
 }
 
 // =====================
@@ -112,8 +110,16 @@ function tryFreeSample() {
 function openLightbox(images, startIndex) {
   const wrapper = document.getElementById('swiperWrapper');
   if (!wrapper) return;
+  
+  // Clean up any old swiper instance completely before altering the DOM
+  if (swiperInstance) {
+    swiperInstance.destroy(true, true);
+    swiperInstance = null;
+  }
+  
   wrapper.innerHTML = '';
 
+  // Inject fresh dynamic slides
   images.forEach((img) => {
     const slide = document.createElement('div');
     slide.className = 'swiper-slide';
@@ -135,16 +141,14 @@ function openLightbox(images, startIndex) {
   document.getElementById('lightbox').classList.remove('hidden');
   document.body.classList.add('lightbox-open');
 
-  if (swiperInstance) {
-    swiperInstance.destroy(true, true);
-    swiperInstance = null;
-  }
-
+  // FIXED: Execute after layout recycles and updates to cleanly navigate directly to startIndex
   setTimeout(() => {
     swiperInstance = new Swiper('.lightbox-swiper', {
-      initialSlide: startIndex,
+      initialSlide: parseInt(startIndex, 10),
       slidesPerView: 1,
       spaceBetween: 0,
+      observer: true,            // Forces swiper to look for DOM alterations
+      observeParents: true,      // Forces swiper to recalculate dimensions
       zoom: {
         maxRatio: 3,
         minRatio: 1,
@@ -158,12 +162,16 @@ function openLightbox(images, startIndex) {
         prevEl: '.swiper-button-prev'
       },
       on: {
+        init: function () {
+          // Double-check jump reinforcement right at lifecycle mounting initialization
+          this.slideTo(parseInt(startIndex, 10), 0, false);
+        },
         slideChange: function() {
           document.getElementById('lightbox-title').textContent = images[this.activeIndex].title;
         }
       }
     });
-  }, 200);
+  }, 50);
 }
 
 function closeLightbox() {
