@@ -6,12 +6,10 @@ let isPremiumUnlocked = false;
 // =====================
 // IMAGE DATA
 // =====================
+const sampleImages = Array.from({length: 20}, (_, i) => ({
+  file: `sample${i + 1}.jpg`,
 
 
-const paidImages = Array.from({length: 100}, (_, i) => ({
-  file: `paid${i + 1}.jpg`,
-  title: `Premium Stereogram ${i + 1}`
-}));
 
 // =====================
 // BUILD FREE GALLERY
