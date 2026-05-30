@@ -27,7 +27,7 @@ function buildFreeGallery() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <img loading="lazy" src="${img.file}" alt="${img.title}" 
+      <img loading="lazy" src="${img.file}" alt="${img.title}"
         onerror="this.src='https://placehold.co/200x160?text=Free'"/>
       <div class="card-label">${img.title}</div>
     `;
@@ -47,7 +47,7 @@ function buildPaidGallery() {
     if (isPremiumUnlocked) {
       card.className = 'card';
       card.innerHTML = `
-        <img loading="lazy" src="${img.file}" alt="${img.title}" 
+        <img loading="lazy" src="${img.file}" alt="${img.title}"
           onerror="this.src='https://placehold.co/200x160?text=Premium'"/>
         <div class="card-label">${img.title}</div>
       `;
@@ -55,7 +55,7 @@ function buildPaidGallery() {
     } else {
       card.className = 'locked-card';
       card.innerHTML = `
-        <img loading="lazy" src="${img.file}" alt="Locked" 
+        <img loading="lazy" src="${img.file}" alt="Locked"
           onerror="this.src='https://placehold.co/200x160?text=🔒'"/>
         <div class="lock-overlay">
           <span class="lock-icon">🔒</span>
@@ -240,7 +240,7 @@ function simulatePurchase() {
 function startCountdown() {
   let minutes = 9;
   let seconds = 59;
-  const timer = setInterval(() => {
+  setInterval(() => {
     const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     const el = document.getElementById('countdown');
     if (el) el.textContent = display;
