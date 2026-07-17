@@ -217,7 +217,7 @@ document.getElementById('paywall').addEventListener('click', function(e) {
 // =====================
 function simulatePurchase() {
   var options = {
-    key: "rzp_live_Srex5oMP9i7MlE",
+    key: "rzp_live_TE1aUdeD7hRtdJ",
     amount: 49900,
     currency: "INR",
     name: "Stereogram Gallery",
